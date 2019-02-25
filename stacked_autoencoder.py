@@ -3,6 +3,12 @@
 # 0 - Import the libraries
 import numpy as np
 import pandas as pd
+import torch
+import torch.nn as nn
+import torch.nn.parallel
+import torch.optim as optim
+import torch.utils.data
+from torch.autograd import Variable
 
 
 
@@ -44,3 +50,14 @@ def organize(data):
 
 training_set = organize(training_set)
 test_set = organize(test_set)
+
+
+
+# 5 - Creating the stacked autoencoder architecture
+
+
+
+
+# 6 - Convert the organized data into Torch tensors
+training_set = torch.FloatTensor(training_set)
+test_set = torch.FloatTensor(test_set)
