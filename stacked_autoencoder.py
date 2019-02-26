@@ -72,6 +72,44 @@ class SAE(nn.Module):
 
 
 
-# 6 - Convert the organized data into Torch tensors
+# 6 - Initializing the stacked autoencoder
+sae = SAE()
+criterion = nn.MSELoss()
+optimizer = optim.RMSprop(sae.parameters(), lr = 1e-2, weight_decay = 1/2)
+
+
+
+# 7 - Convert the organized data into Torch tensors
 training_set = torch.FloatTensor(training_set)
 test_set = torch.FloatTensor(test_set)
+
+
+
+# 8 - Training the stacked autoencoder
+nb_epoch = 200
+for epoch in range(1, nb_epoch + 1):
+    train_loss = 0
+    score = 0.0 # will be used to calculate root mean square error
+    
+    for id_user in range(nb_users):
+        input = Variable(training_set[id_user]).unsqueeze(0)
+        target = input.clone()
+        
+        if torch.sum(target.data > 0) > 0:
+            output = sae(input)
+            target.require_grad = False
+            output[target == 0] = 0 # To save processing and memory
+            loss = criterion(output, target) # Compute MSE between ŷ and y
+            mean_corrector_factor = nb_movies/float(torch.sum(target.data > 0) + 1e-10)
+            loss.backward()
+            train_loss += np.sqrt(loss.item() * mean_corrector_factor)
+            score += 1.0
+            optimizer.step()
+            
+    print('epoch : ' + str(epoch) + '   loss : ' + str(train_loss/score))
+
+
+
+# 9 - Testing the stacked autoencoder
+test_loss = 0
+s = 0.
