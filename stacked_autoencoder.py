@@ -54,7 +54,21 @@ test_set = organize(test_set)
 
 
 # 5 - Creating the stacked autoencoder architecture
-
+class SAE(nn.Module):
+    def __init__(self, ):
+        super(SAE, self).__init__() # inheritence
+        self.full_connection1 = nn.Linear(nb_movies, 20)
+        self.full_connection2 = nn.Linear(20, 10)
+        self.full_connection3 = nn.Linear(10, 20)
+        self.full_connection4 = nn.Linear(20, nb_movies)
+        self.activation = nn.Sigmoid()
+        
+    def forward(self, x):
+        x = self.activation(self.full_connection1(x)) # encoding
+        x = self.activation(self.full_connection2(x)) # encoding
+        x = self.activation(self.full_connection3(x)) # decoding
+        x = self.full_connection4(x) # output decoding
+        return x
 
 
 
