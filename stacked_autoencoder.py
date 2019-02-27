@@ -12,14 +12,7 @@ from torch.autograd import Variable
 
 
 
-# 1 - Importing the dataset
-ratings = pd.read_csv("ml-1m/ratings.dat", sep = '::', header = None, engine = 'python', encoding = 'latin-1')
-movies = pd.read_csv("ml-1m/movies.dat", sep = '::', header = None, engine = 'python', encoding = 'latin-1')
-users = pd.read_csv("ml-1m/users.dat", sep = '::', header = None, engine = 'python', encoding = 'latin-1')
-
-
-
-# 2 - Preparing the training- and test set.
+# 1 - Preparing the training- and test set.
 """ The dataset has been split into 5 subsets for the
 purpose of conducting a k-fold cross validation later."""
 
@@ -31,13 +24,13 @@ test_set = np.array(test_set, dtype = "int")
 
 
 
-# 3 - Getting the number of users and movies
+# 2 - Getting the number of users and movies
 nb_users = int(max(max(training_set[:,0]), max(test_set[:,0])))
 nb_movies = int(max(max(training_set[:,1]), max(test_set[:,1])))
 
 
 
-# 4 - Organizing the data sets
+# 3 - Organizing the data sets
 def organize(data):
     new_data = []
     for id_users in range (1, nb_users + 1):
@@ -53,7 +46,7 @@ test_set = organize(test_set)
 
 
 
-# 5 - Creating the stacked autoencoder architecture
+# 4 - Creating the stacked autoencoder architecture
 class SAE(nn.Module):
     def __init__(self, ):
         super(SAE, self).__init__() # inheritence
@@ -72,20 +65,20 @@ class SAE(nn.Module):
 
 
 
-# 6 - Initializing the stacked autoencoder
+# 5 - Initializing the stacked autoencoder
 sae = SAE()
 criterion = nn.MSELoss()
 optimizer = optim.RMSprop(sae.parameters(), lr = 1e-2, weight_decay = 1/2)
 
 
 
-# 7 - Convert the organized data into Torch tensors
+# 6 - Convert the organized data into Torch tensors
 training_set = torch.FloatTensor(training_set)
 test_set = torch.FloatTensor(test_set)
 
 
 
-# 8 - Training the stacked autoencoder
+# 7 - Training the stacked autoencoder
 nb_epoch = 200
 for epoch in range(1, nb_epoch + 1):
     train_loss = 0
@@ -110,6 +103,30 @@ for epoch in range(1, nb_epoch + 1):
 
 
 
-# 9 - Testing the stacked autoencoder
+# 8 - Testing the stacked autoencoder
 test_loss = 0
-s = 0.
+score = 0.
+
+for id_user in range(nb_users):
+    input = Variable(training_set[id_user]).unsqueeze(0)
+    target = Variable(test_set[id_user])
+    
+    if torch.sum(target.data > 0) > 0:
+        output = sae(input)
+        target.require_grad = False
+        output[target == 0] = 0 # To save processing and memory
+        loss = criterion(output, target) # Compute MSE between ŷ and y
+        mean_corrector_factor = nb_movies/float(torch.sum(target.data > 0) + 1e-10)
+        test_loss += np.sqrt(loss.item() * mean_corrector_factor)
+        score += 1.0
+        optimizer.step()
+            
+print('test loss : ' + str(test_loss/score))
+    
+    
+    
+    
+    
+    
+    
+    
