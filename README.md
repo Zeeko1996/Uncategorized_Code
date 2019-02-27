@@ -1,2 +1,2 @@
-# Autoencoders
-Various implementations of several different variants of autoencoders.
+# Stacked Autoencoder
+Simple implementation of a stacked autoencoder, using PyTorch.
